@@ -10,12 +10,13 @@ app.use(express.json());
 
 app.post("/screenshot", async (req, res) => {
   const { url, timeout = 10000 } = req.body;
-
+  console.log("req.body", req.body);
+  let _url = "https://proxy-ov5tc.ondigitalocean.app/index.php?q=";
   if (!url) {
     console.log("url", url);
     return res.status(400).json({ error: "URL parameter is required" });
   }
-
+  _url += btoa(url);
   try {
     const browser = await puppeteer.launch({
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
