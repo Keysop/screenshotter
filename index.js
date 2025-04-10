@@ -19,6 +19,7 @@ app.post("/screenshot", async (req, res) => {
   _url += btoa(url);
   try {
     const browser = await puppeteer.launch({
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
       executablePath: "/usr/bin/chromium-browser",
       headless: true,
     });
