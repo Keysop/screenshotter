@@ -12,6 +12,7 @@ app.post("/screenshot", async (req, res) => {
   const { url, timeout = 10000 } = req.body;
 
   if (!url) {
+    console.log("url", url);
     return res.status(400).json({ error: "URL parameter is required" });
   }
 
@@ -22,19 +23,17 @@ app.post("/screenshot", async (req, res) => {
       headless: true,
     });
     const page = await browser.newPage();
-
+    console.log("page", page);
     // Set viewport size
     await page.setViewport({ width: 1920, height: 1080 });
-
     // Navigate to the URL
     await page.goto(url, { waitUntil: "networkidle0" });
-
     // Wait for specified timeout (default 10 seconds)
     await new Promise((resolve) => setTimeout(resolve, timeout));
-
+    console.log("page", page);
     // Take screenshot and convert to base64
     const screenshot = await page.screenshot({ encoding: "base64" });
-
+    console.log("screenshot", screenshot);
     await browser.close();
 
     // Return the base64 image
