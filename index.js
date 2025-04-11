@@ -1,5 +1,6 @@
 const express = require("express");
 const puppeteer = require("puppeteer");
+const { chromium } = require("playwright");
 require("dotenv").config();
 
 const app = express();
@@ -79,6 +80,65 @@ app.post("/screenshot", async (req, res) => {
   } catch (error) {
     console.error("Error taking screenshot:", error);
     res.status(500).json({ error: "Failed to take screenshot" });
+  }
+});
+
+app.post("/screenshot-playwright", async (req, res) => {
+  const { url, timeout = 10000 } = req.body;
+
+  if (!url) {
+    return res.status(400).json({ error: "URL parameter is required" });
+  }
+
+  try {
+    const browser = await chromium.launch({
+      headless: true,
+      args: [
+        "--disable-web-security",
+        "--disable-features=IsolateOrigins,site-per-process",
+        "--disable-site-isolation-trials",
+      ],
+    });
+
+    const context = await browser.newContext({
+      viewport: { width: 1920, height: 1080 },
+    });
+
+    const page = await context.newPage();
+
+    try {
+      const response = await page.goto(url, {
+        waitUntil: "domcontentloaded",
+        timeout: 0,
+      });
+
+      if (!response.ok()) {
+        return res.status(400).json({ error: "Failed to load URL" });
+      }
+
+      // Wait for specified timeout
+      await new Promise((resolve) => setTimeout(resolve, timeout));
+
+      // Take screenshot and convert to base64
+      const screenshot = await page.screenshot({
+        type: "jpeg",
+      });
+      const base64Image = screenshot.toString("base64");
+      // Return the base64 image
+      res.json({
+        image: `data:image/jpeg;base64,${base64Image}`,
+        timestamp: new Date().toISOString(),
+        timeout: timeout,
+      });
+    } catch (error) {
+      console.error("Error taking screenshot:", error);
+      res.status(500).json({ error: "Failed to take screenshot" });
+    } finally {
+      await browser.close();
+    }
+  } catch (error) {
+    console.error("Error launching browser:", error);
+    res.status(500).json({ error: "Failed to launch browser" });
   }
 });
 
