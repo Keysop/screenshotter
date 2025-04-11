@@ -27,7 +27,14 @@ app.post("/screenshot", async (req, res) => {
     const page = await browser.newPage();
 
     // Navigate to the URL
-    await page.goto(url, { waitUntil: "networkidle0" });
+    let status = await page.goto(url, {
+      waitUntil: "networkidle0",
+      timeout: 0,
+    });
+    console.log("status", status);
+    if (status.status() !== 200) {
+      return res.status(400).json({ error: "Failed to load URL" });
+    }
     // Wait for specified timeout (default 10 seconds)
     await new Promise((resolve) => setTimeout(resolve, timeout));
     console.log("page", page);
