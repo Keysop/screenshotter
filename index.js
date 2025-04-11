@@ -42,11 +42,11 @@ app.post("/screenshot", async (req, res) => {
 
       // executablePath: "/usr/bin/chromium-browser",
       defaultViewport: { width: 1920, height: 1080 },
-      headless: true,
+      headless: "new",
     });
     const page = await browser.newPage();
     page.setDefaultNavigationTimeout(0);
-
+    await page.emulateMediaType("screen");
     try {
       // Navigate to the URL
       let status = await page.goto(url, {
