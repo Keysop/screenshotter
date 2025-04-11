@@ -29,7 +29,8 @@ app.post("/screenshot", async (req, res) => {
 
     // Navigate to the URL
     let status = await page.goto(_url, {
-      waitUntil: "networkidle0",
+      timeout: 0,
+      waitUntil: "domcontentloaded",
     });
     console.log("status", status);
     if (status.status() !== 200) {
