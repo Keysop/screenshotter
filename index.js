@@ -19,7 +19,24 @@ app.post("/screenshot", async (req, res) => {
   _url += btoa(url);
   try {
     const browser = await puppeteer.launch({
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--no-first-run",
+        "--no-zygote",
+        "--disable-gpu",
+        "--disable-extensions",
+        "--disable-features=site-per-process",
+        "--ignore-certificate-errors",
+        "--disable-blink-features=AutomationControlled",
+        "--disable-infobars",
+        "--window-position=0,0",
+        "--ignore-certifcate-errors",
+        "--ignore-certifcate-errors-spki-list",
+      ],
+
       // executablePath: "/usr/bin/chromium-browser",
       defaultViewport: { width: 1920, height: 1080 },
       headless: true,
