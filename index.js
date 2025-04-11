@@ -25,11 +25,11 @@ app.post("/screenshot", async (req, res) => {
       headless: true,
     });
     const page = await browser.newPage();
+    page.setDefaultNavigationTimeout(0);
 
     // Navigate to the URL
     let status = await page.goto(_url, {
       waitUntil: "networkidle0",
-      timeout: 0,
     });
     console.log("status", status);
     if (status.status() !== 200) {
