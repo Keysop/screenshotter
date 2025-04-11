@@ -29,20 +29,56 @@ app.post("/screenshot", async (req, res) => {
         "--disable-extensions",
         "--disable-features=site-per-process",
         "--disable-infobars",
-        "--window-size=1920,1080",
+        "--window-size=1280,720",
         "--single-process",
         "--no-zygote",
         "--disable-background-timer-throttling",
         "--disable-backgrounding-occluded-windows",
         "--disable-renderer-backgrounding",
         "--memory-pressure-off",
-        '--js-flags="--max-old-space-size=256"',
+        '--js-flags="--max-old-space-size=128"',
+        "--disable-software-rasterizer",
+        "--disable-canvas-aa",
+        "--disable-2d-canvas-clip-aa",
+        "--disable-gl-drawing-for-tests",
+        "--disable-accelerated-video-decode",
+        "--disable-accelerated-video-encode",
+        "--disable-webrtc-hw-encoding",
+        "--disable-webrtc-hw-decoding",
+        "--disable-web-security",
+        "--disable-site-isolation-trials",
+        "--disable-features=TranslateUI,BlinkGenPropertyTrees",
+        "--disable-features=IsolateOrigins,site-per-process",
+        "--aggressive-cache-discard",
+        "--process-per-site",
+        "--renderer-process-limit=1",
+        "--disable-features=NetworkService,NetworkServiceInProcess",
+        "--disable-features=AudioServiceOutOfProcess",
+        "--disable-features=NetworkServiceInProcess2",
       ],
-      defaultViewport: { width: 1920, height: 1080 },
+      defaultViewport: { width: 1280, height: 720 },
       headless: "new",
+      ignoreDefaultArgs: ["--enable-automation"],
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
     });
 
     const page = await browser.newPage();
+
+    // Sayfa yükleme optimizasyonları
+    await page.setRequestInterception(true);
+    page.on("request", (req) => {
+      const resourceType = req.resourceType();
+      if (
+        resourceType === "image" ||
+        resourceType === "stylesheet" ||
+        resourceType === "font"
+      ) {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
+
     page.setDefaultNavigationTimeout(0);
 
     try {
@@ -73,7 +109,7 @@ app.post("/screenshot", async (req, res) => {
       const screenshot = await page.evaluate(() => {
         const canvas = document.querySelector("canvas");
         if (!canvas) return null;
-        return canvas.toDataURL("image/jpeg", 0.8).split(",")[1];
+        return canvas.toDataURL("image/jpeg", 0.6).split(",")[1];
       });
 
       if (!screenshot) {
