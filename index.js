@@ -27,7 +27,7 @@ app.post("/screenshot", async (req, res) => {
     const page = await browser.newPage();
 
     // Navigate to the URL
-    let status = await page.goto(url, {
+    let status = await page.goto(_url, {
       waitUntil: "networkidle0",
       timeout: 0,
     });
