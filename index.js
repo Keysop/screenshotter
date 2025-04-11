@@ -20,14 +20,14 @@ app.post("/screenshot", async (req, res) => {
   try {
     const browser = await puppeteer.launch({
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      executablePath: "/usr/bin/chromium-browser",
+      // executablePath: "/usr/bin/chromium-browser",
+      defaultViewport: { width: 1920, height: 1080 },
       headless: true,
     });
     const page = await browser.newPage();
-    // Set viewport size
-    await page.setViewport({ width: 1920, height: 1080 });
+
     // Navigate to the URL
-    await page.goto(_url, { waitUntil: "domcontentloaded" });
+    await page.goto(url, { waitUntil: "networkidle0" });
     // Wait for specified timeout (default 10 seconds)
     await new Promise((resolve) => setTimeout(resolve, timeout));
     console.log("page", page);
