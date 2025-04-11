@@ -85,7 +85,7 @@ app.post("/screenshot", async (req, res) => {
 
 app.post("/screenshot-playwright", async (req, res) => {
   const { url, timeout = 10000 } = req.body;
-
+  console.log("req.body", req.body);
   if (!url) {
     return res.status(400).json({ error: "URL parameter is required" });
   }
