@@ -20,6 +20,9 @@ app.post("/screenshot", async (req, res) => {
   try {
     const browser = await puppeteer.launch({
       args: [
+        "--disable-session-crashed-bubble",
+        "--single-process",
+        "--noerrdialogs",
         "--no-sandbox",
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",
@@ -44,29 +47,35 @@ app.post("/screenshot", async (req, res) => {
     const page = await browser.newPage();
     page.setDefaultNavigationTimeout(0);
 
-    // Navigate to the URL
-    let status = await page.goto(url, {
-      timeout: 0,
-      waitUntil: "domcontentloaded",
-    });
-    console.log("status", status.status());
-    if (status.status() !== 200) {
-      return res.status(400).json({ error: "Failed to load URL" });
+    try {
+      // Navigate to the URL
+      let status = await page.goto(url, {
+        timeout: 0,
+        waitUntil: "domcontentloaded",
+      });
+      console.log("status", status.status());
+      if (status.status() !== 200) {
+        return res.status(400).json({ error: "Failed to load URL" });
+      }
+      // Wait for specified timeout (default 10 seconds)
+      await new Promise((resolve) => setTimeout(resolve, timeout));
+      console.log("page", page);
+      // Take screenshot and convert to base64
+      const screenshot = await page.screenshot({ encoding: "base64" });
+      console.log("screenshot", screenshot);
+      // Return the base64 image
+      res.json({
+        image: `data:image/png;base64,${screenshot}`,
+        timestamp: new Date().toISOString(),
+        timeout: timeout,
+      });
+    } catch (error) {
+      console.error("Error taking screenshot:", error);
+      res.status(500).json({ error: "Failed to take screenshot" });
+      return;
+    } finally {
+      await browser.close();
     }
-    // Wait for specified timeout (default 10 seconds)
-    await new Promise((resolve) => setTimeout(resolve, timeout));
-    console.log("page", page);
-    // Take screenshot and convert to base64
-    const screenshot = await page.screenshot({ encoding: "base64" });
-    console.log("screenshot", screenshot);
-    await browser.close();
-
-    // Return the base64 image
-    res.json({
-      image: `data:image/png;base64,${screenshot}`,
-      timestamp: new Date().toISOString(),
-      timeout: timeout,
-    });
   } catch (error) {
     console.error("Error taking screenshot:", error);
     res.status(500).json({ error: "Failed to take screenshot" });
