@@ -28,11 +28,11 @@ app.post("/screenshot", async (req, res) => {
     page.setDefaultNavigationTimeout(0);
 
     // Navigate to the URL
-    let status = await page.goto(_url, {
+    let status = await page.goto(url, {
       timeout: 0,
       waitUntil: "domcontentloaded",
     });
-    console.log("status", status);
+    console.log("status", status.status());
     if (status.status() !== 200) {
       return res.status(400).json({ error: "Failed to load URL" });
     }
