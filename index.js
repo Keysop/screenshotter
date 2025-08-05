@@ -2,6 +2,7 @@ const express = require("express");
 const puppeteer = require("puppeteer");
 const { chromium } = require("playwright");
 require("dotenv").config();
+const { io } = require("socket.io-client");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -142,6 +143,66 @@ app.post("/screenshot-playwright", async (req, res) => {
   }
 });
 
+app.get("/marble-race", async (req, res) => {
+  const { id } = req.query;
+  console.log("id", id);
+
+  try {
+    const browser = await chromium.launch({
+      headless: true,
+      args: [
+        "--disable-web-security",
+        "--disable-features=IsolateOrigins,site-per-process",
+        "--disable-site-isolation-trials",
+      ],
+    });
+
+    const context = await browser.newContext({
+      viewport: { width: 1920, height: 1080 },
+    });
+
+    const page = await context.newPage();
+
+    const response = await page.goto("http://localhost:4202/marble-race", {
+      waitUntil: "domcontentloaded",
+      timeout: 0,
+    });
+
+    if (!response.ok()) {
+      return res.status(400).json({ error: "Failed to load URL" });
+    }
+    for (let x = 0; x < 6; x++) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await page.locator("button#add-marble").click();
+    }
+    const socket = io("wss://dev.api.chat.streamer.my");
+    socket.on("connect", () => {
+      console.log("connected");
+    });
+    socket.on("send-data", async (message) => {
+      console.log("message", message);
+      if (message.winner) {
+        console.log("winner", message.winner);
+        res.json({ winner: message.winner });
+        socket.disconnect();
+        await browser.close();
+        return;
+      }
+    });
+    socket.on("disconnect", () => {
+      console.log("disconnected");
+    });
+    socket.on("error", (error) => {
+      console.log("error", error);
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 10000));
+    await page.locator("button#start-simulation").click();
+  } catch (error) {
+    console.error("Error launching browser:", error);
+    res.status(500).json({ error: "Failed to launch browser" });
+  }
+});
 app.listen(port, () => {
   console.log(`Screenshot service running at http://localhost:${port}`);
 });
