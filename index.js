@@ -164,6 +164,77 @@ app.get("/marble-race", async (req, res) => {
     const page = await context.newPage();
 
     const response = await page.goto(
+      "https://api-ekremabi.com/marble-race/live-game?id=" + id,
+      {
+        waitUntil: "domcontentloaded",
+        timeout: 0,
+      }
+    );
+
+    if (!response.ok()) {
+      return res.status(400).json({ error: "Failed to load URL" });
+    }
+    const socket = io("wss://socket.api-ekremabi.com");
+    socket.on("connect", () => {
+      console.log("connected");
+    });
+    // socket.on("send-data", async (message) => {
+    //   console.log("message", message);
+    //   if (message.winner) {
+    //     console.log("winner", message.winner);
+    //     res.json({ winner: message.winner });
+    //     socket.disconnect();
+    //     await browser.close();
+    //     res.status(200).json({ winner: message.winner });
+    //     return;
+    //   }
+    // });
+    socket.on("marble-race-end", async (message) => {
+      console.log("marble-race-end", message);
+      socket.disconnect();
+      await page.close();
+      await browser.close();
+      res.status(200).json({ winner: message["marble-race-end"] });
+    });
+    socket.on("disconnect", () => {
+      console.log("disconnected");
+    });
+    socket.on("error", (error) => {
+      console.log("error", error);
+    });
+    for (let x = 0; x < 6; x++) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await page.locator("button#add-marble").click({ force: true });
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await page.locator("button#start-simulation").click();
+  } catch (error) {
+    console.error("Error launching browser:", error);
+    res.status(500).json({ error: "Failed to launch browser" });
+  }
+});
+app.get("/marble-race-dev", async (req, res) => {
+  const { id } = req.query;
+  console.log("id", id);
+
+  try {
+    const browser = await chromium.launch({
+      headless: true,
+      args: [
+        "--disable-web-security",
+        "--disable-features=IsolateOrigins,site-per-process",
+        "--disable-site-isolation-trials",
+      ],
+    });
+
+    const context = await browser.newContext({
+      viewport: { width: 1920, height: 1080 },
+    });
+
+    const page = await context.newPage();
+
+    const response = await page.goto(
       "https://dev.admin.streamer.my/marble-race/live-game?id=" + id,
       {
         waitUntil: "domcontentloaded",
