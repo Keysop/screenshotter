@@ -164,7 +164,7 @@ app.get("/marble-race", async (req, res) => {
     const page = await context.newPage();
 
     const response = await page.goto(
-      "https://api-ekremabi.com/marble-race/live-game?id=" + id,
+      "https://admin.ekremabi854.com/marble-race/live-game?id=" + id,
       {
         waitUntil: "domcontentloaded",
         timeout: 0,
