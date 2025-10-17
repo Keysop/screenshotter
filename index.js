@@ -164,7 +164,7 @@ app.get("/marble-race", async (req, res) => {
     const page = await context.newPage();
 
     const response = await page.goto(
-      "https://admin.ekremabi854.com/marble-race/live-game?id=" + id,
+      "https://admin.ekremabi859.com/marble-race/live-game?id=" + id,
       {
         waitUntil: "domcontentloaded",
         timeout: 0,
@@ -174,23 +174,16 @@ app.get("/marble-race", async (req, res) => {
     if (!response.ok()) {
       return res.status(400).json({ error: "Failed to load URL" });
     }
-    const socket = io("wss://socket.api-ekremabi.com");
+    const socket = io("wss://v2-mini-games.api-ekremabi.com");
     socket.on("connect", () => {
       console.log("connected");
     });
-    // socket.on("send-data", async (message) => {
-    //   console.log("message", message);
-    //   if (message.winner) {
-    //     console.log("winner", message.winner);
-    //     res.json({ winner: message.winner });
-    //     socket.disconnect();
-    //     await browser.close();
-    //     res.status(200).json({ winner: message.winner });
-    //     return;
-    //   }
-    // });
-    socket.on("marble-race-end", async (message) => {
+
+    socket.on("marble-race-finish", async (message) => {
       console.log("marble-race-end", message);
+      if (message.id != id) {
+        return;
+      }
       socket.disconnect();
       await page.close();
       await browser.close();
@@ -245,7 +238,7 @@ app.get("/marble-race-dev", async (req, res) => {
     if (!response.ok()) {
       return res.status(400).json({ error: "Failed to load URL" });
     }
-    const socket = io("wss://dev.api.chat.streamer.my");
+    const socket = io("wss://mini-games.streamer.my");
     socket.on("connect", () => {
       console.log("connected");
     });
@@ -260,8 +253,11 @@ app.get("/marble-race-dev", async (req, res) => {
     //     return;
     //   }
     // });
-    socket.on("marble-race-end", async (message) => {
+    socket.on("marble-race-finish", async (message) => {
       console.log("marble-race-end", message);
+      if (message.id != id) {
+        return;
+      }
       socket.disconnect();
       await page.close();
       await browser.close();
