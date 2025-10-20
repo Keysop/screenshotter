@@ -144,7 +144,7 @@ app.post("/screenshot-playwright", async (req, res) => {
 });
 
 app.get("/marble-race", async (req, res) => {
-  const { id } = req.query;
+  const { id, currentDomain } = req.query;
   console.log("id", id);
 
   try {
@@ -164,7 +164,8 @@ app.get("/marble-race", async (req, res) => {
     const page = await context.newPage();
 
     const response = await page.goto(
-      "https://admin.ekremabi859.com/marble-race/live-game?id=" + id,
+      "https://admin." + currentDomain ??
+        "ekremabi862.com" + "/marble-race/live-game?id=" + id,
       {
         waitUntil: "domcontentloaded",
         timeout: 0,
@@ -208,7 +209,7 @@ app.get("/marble-race", async (req, res) => {
   }
 });
 app.get("/marble-race-dev", async (req, res) => {
-  const { id } = req.query;
+  const { id, currentDomain } = req.query;
   console.log("id", id);
 
   try {
@@ -228,7 +229,8 @@ app.get("/marble-race-dev", async (req, res) => {
     const page = await context.newPage();
 
     const response = await page.goto(
-      "https://dev.admin.streamer.my/marble-race/live-game?id=" + id,
+      "https://dev.admin." + currentDomain ??
+        "streamer.my" + "/marble-race/live-game?id=" + id,
       {
         waitUntil: "domcontentloaded",
         timeout: 0,
